@@ -489,6 +489,81 @@
     .form-row { grid-template-columns: 1fr; }
     .container { padding: 24px 16px 48px; }
   }
+
+
+  .brand-icon {
+    width: 92px;
+    height: 92px;
+    border-radius: 24px;
+    object-fit: cover;
+    box-shadow: 0 12px 35px rgba(0,212,170,0.28);
+    border: 2px solid rgba(255,255,255,0.35);
+    margin-bottom: 16px;
+  }
+
+  .privacy-box {
+    background: #FFF8E8;
+    border: 1px solid #FFE1A8;
+    color: #6B4A00;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 13.5px;
+    line-height: 1.7;
+    margin-bottom: 18px;
+  }
+
+  .privacy-box strong {
+    display: block;
+    color: #A06400;
+    margin-bottom: 4px;
+  }
+
+  .question-card {
+    background: #FFFFFF;
+    border: 1px solid rgba(26,58,107,0.12);
+    border-radius: 16px;
+    padding: 18px 18px 14px;
+    margin-bottom: 14px;
+  }
+
+  .question-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 15px;
+    line-height: 1.6;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 12px;
+  }
+
+  .radio-options {
+    display: grid;
+    gap: 8px;
+  }
+
+  .radio-options label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--off-white);
+    color: #445566;
+    font-size: 14px;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+
+  .radio-options input {
+    accent-color: var(--navy-mid);
+  }
+
+  .radio-options label:has(input:checked) {
+    border-color: var(--navy-lite);
+    background: #EEF4FF;
+    color: var(--navy);
+    font-weight: 600;
+  }
+
 </style>
 </head>
 <body>
@@ -505,8 +580,9 @@
       <div class="logo-dot"></div>
       <span>亞東紀念醫院・聲紋 AI 系統</span>
     </div>
-    <h1>聲音樣本收集平台</h1>
-    <p>感謝您配合本院 AI 聲紋研究計畫。<br>請依照指示朗讀文字並完成錄音，協助我們建立聲音資料庫。</p>
+    <img class="brand-icon" src="https://raw.githubusercontent.com/willy25426-lgtm/voice-collect-site/12b9f4bd00d3285d15eedf14a758113bfbc20911/S__956481538.jpg" alt="好呼吸 icon">
+    <h1>好呼吸</h1>
+    <p>請依照指示完成基本資料、呼吸狀況問卷與錄音。<br>本服務將協助進行聲紋與呼吸健康相關資料收集。</p>
   </header>
 
   <div class="card">
@@ -556,6 +632,92 @@
         </select>
       </div>
     </div>
+    <div class="form-row full">
+      <div class="field">
+        <label>當天天氣</label>
+        <select id="weather">
+          <option value="">請選擇</option>
+          <option value="sunny">晴天</option>
+          <option value="cloudy">多雲</option>
+          <option value="rainy">雨天</option>
+          <option value="humid">悶熱</option>
+          <option value="cold">寒冷</option>
+          <option value="windy">風大</option>
+          <option value="air_poor">空氣品質不佳</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+
+
+  <div class="card">
+    <div class="card-title">
+      <div class="icon">📋</div>
+      自我檢測｜氣喘控制測驗（ACT）
+    </div>
+
+    <div class="question-card">
+      <div class="question-title">第一題：在「過去 4 週」中，您的「氣喘」會讓您無法完成一般的工作、課業或家事嗎？</div>
+      <div class="radio-options">
+        <label><input type="radio" name="act_q1" value="1" data-label="總是如此">(1) 總是如此</label>
+        <label><input type="radio" name="act_q1" value="2" data-label="經常如此">(2) 經常如此</label>
+        <label><input type="radio" name="act_q1" value="3" data-label="有時如此">(3) 有時如此</label>
+        <label><input type="radio" name="act_q1" value="4" data-label="很少如此">(4) 很少如此</label>
+        <label><input type="radio" name="act_q1" value="5" data-label="不曾如此">(5) 不曾如此</label>
+      </div>
+    </div>
+
+    <div class="question-card">
+      <div class="question-title">第二題：在「過去 4 週」中，您多常發生呼吸急促的情形？</div>
+      <div class="radio-options">
+        <label><input type="radio" name="act_q2" value="1" data-label="一天超過一次">(1) 一天超過一次</label>
+        <label><input type="radio" name="act_q2" value="2" data-label="一天一次">(2) 一天一次</label>
+        <label><input type="radio" name="act_q2" value="3" data-label="一週 3 至 6 次">(3) 一週 3 至 6 次</label>
+        <label><input type="radio" name="act_q2" value="4" data-label="一週 1 至 2 次">(4) 一週 1 至 2 次</label>
+        <label><input type="radio" name="act_q2" value="5" data-label="完全沒有發生過">(5) 完全沒有發生過</label>
+      </div>
+    </div>
+
+    <div class="question-card">
+      <div class="question-title">第三題：在「過去 4 週」中，您多常因「氣喘」症狀（喘鳴、咳嗽、呼吸急促、胸悶或胸痛）而讓您半夜醒來或提早醒來？</div>
+      <div class="radio-options">
+        <label><input type="radio" name="act_q3" value="1" data-label="一週 4 次或 4 次以上">(1) 一週 4 次或 4 次以上</label>
+        <label><input type="radio" name="act_q3" value="2" data-label="一週 2 至 3 次">(2) 一週 2 至 3 次</label>
+        <label><input type="radio" name="act_q3" value="3" data-label="一週 1 次">(3) 一週 1 次</label>
+        <label><input type="radio" name="act_q3" value="4" data-label="1 或 2 次">(4) 1 或 2 次</label>
+        <label><input type="radio" name="act_q3" value="5" data-label="完全沒有發生過">(5) 完全沒有發生過</label>
+      </div>
+    </div>
+
+    <div class="question-card">
+      <div class="question-title">第四題：在「過去 4 週」中，您多常使用急救性藥物或噴霧型藥物（例如：Albuterol、Ventolin、Berotec 或 Bricanyl 等氣喘藥物）？</div>
+      <div class="radio-options">
+        <label><input type="radio" name="act_q4" value="1" data-label="一天 3 次或 3 次以上">(1) 一天 3 次或 3 次以上</label>
+        <label><input type="radio" name="act_q4" value="2" data-label="一天 1 或 2 次">(2) 一天 1 或 2 次</label>
+        <label><input type="radio" name="act_q4" value="3" data-label="一週 2 或 3 次">(3) 一週 2 或 3 次</label>
+        <label><input type="radio" name="act_q4" value="4" data-label="一週 1 次或更少">(4) 一週 1 次或更少</label>
+        <label><input type="radio" name="act_q4" value="5" data-label="完全沒有使用過">(5) 完全沒有使用過</label>
+      </div>
+    </div>
+
+    <div class="question-card">
+      <div class="question-title">第五題：在「過去 4 週」中，您對您氣喘控制程度的評價為何？</div>
+      <div class="radio-options">
+        <label><input type="radio" name="act_q5" value="1" data-label="完全沒有受到控制">(1) 完全沒有受到控制</label>
+        <label><input type="radio" name="act_q5" value="2" data-label="控制不好">(2) 控制不好</label>
+        <label><input type="radio" name="act_q5" value="3" data-label="稍微受到控制">(3) 稍微受到控制</label>
+        <label><input type="radio" name="act_q5" value="4" data-label="控制良好">(4) 控制良好</label>
+        <label><input type="radio" name="act_q5" value="5" data-label="完全受到控制">(5) 完全受到控制</label>
+      </div>
+    </div>
+
+    <div class="form-row full">
+      <div class="field">
+        <label>尖峰呼氣流速</label>
+        <input type="number" id="peakFlow" placeholder="請輸入尖峰呼氣流速">
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -602,6 +764,11 @@
     <div class="card-title">
       <div class="icon">📤</div>
       送出資料
+    </div>
+
+    <div class="privacy-box">
+      <strong>隱私權保護申明</strong>
+      當你願意使用這個服務時，代表你已經同意我們的隱私權保護申明。
     </div>
 
     <ul class="info-list" style="margin-bottom: 20px;">
@@ -711,10 +878,36 @@ function updateTimer(increment = false) {
   document.getElementById('timer').textContent = `${m}:${s}`;
 }
 
+function getRadioValue(name) {
+  const checked = document.querySelector(`input[name="${name}"]:checked`);
+  return checked ? checked.value : '';
+}
+
+function getRadioLabel(name) {
+  const checked = document.querySelector(`input[name="${name}"]:checked`);
+  return checked ? checked.dataset.label : '';
+}
+
+function calculateActScore() {
+  return ['act_q1', 'act_q2', 'act_q3', 'act_q4', 'act_q5']
+    .map(getRadioValue)
+    .reduce((sum, value) => sum + Number(value || 0), 0)
+    .toString();
+}
+
 async function submitData() {
   if (!document.getElementById('name').value.trim()) {
     return alert('請填寫姓名');
   }
+  if (!document.getElementById('weather').value) {
+    return alert('請選擇當天天氣');
+  }
+
+  const actAnswers = ['act_q1', 'act_q2', 'act_q3', 'act_q4', 'act_q5'].map(getRadioValue);
+  if (actAnswers.some(v => !v)) {
+    return alert('請完成氣喘控制測驗（ACT）所有題目');
+  }
+
   if (!audioBlob) {
     return alert('請先完成錄音');
   }
@@ -733,6 +926,22 @@ async function submitData() {
   fd.append('gender', document.getElementById('gender').value);
   fd.append('age_group', document.getElementById('ageGroup').value);
   fd.append('diagnosis', document.getElementById('diagnosis').value);
+  fd.append('weather', document.getElementById('weather').value);
+  fd.append('peak_flow', document.getElementById('peakFlow').value.trim());
+
+  fd.append('act_q1', getRadioValue('act_q1'));
+  fd.append('act_q2', getRadioValue('act_q2'));
+  fd.append('act_q3', getRadioValue('act_q3'));
+  fd.append('act_q4', getRadioValue('act_q4'));
+  fd.append('act_q5', getRadioValue('act_q5'));
+  fd.append('act_q1_text', getRadioLabel('act_q1'));
+  fd.append('act_q2_text', getRadioLabel('act_q2'));
+  fd.append('act_q3_text', getRadioLabel('act_q3'));
+  fd.append('act_q4_text', getRadioLabel('act_q4'));
+  fd.append('act_q5_text', getRadioLabel('act_q5'));
+  fd.append('act_score', calculateActScore());
+  fd.append('privacy_agreement', 'agreed');
+
   fd.append('timestamp', new Date().toISOString());
   fd.append('duration', String(Math.max(seconds - 1, 0)));
 
