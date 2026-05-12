@@ -830,16 +830,27 @@ async function toggleRecord() {
 async function startRecording() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+  ? 'audio/webm;codecs=opus'
+  : 'audio/mp4';
+
+mediaRecorder = new MediaRecorder(stream, { mimeType });
+
+window.currentMimeType = mimeType;
     audioChunks = [];
 
     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
     mediaRecorder.onstop = () => {
-      audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-      const url = URL.createObjectURL(audioBlob);
-      document.getElementById('audioPlayer').src = url;
-      document.getElementById('playbackArea').classList.add('show');
-    };
+
+  audioBlob = new Blob(audioChunks, {
+    type: window.currentMimeType
+  });
+
+  const url = URL.createObjectURL(audioBlob);
+
+  document.getElementById('audioPlayer').src = url;
+  document.getElementById('playbackArea').classList.add('show');
+};
 
     mediaRecorder.start();
     isRecording = true;
@@ -936,7 +947,15 @@ async function submitData() {
   animateProgress(0, 70, 1200);
 
   const fd = new FormData();
-  fd.append('audio_file', audioBlob, 'voice_sample.wav');
+  let extension = 'webm';
+
+if (window.currentMimeType.includes('mp4')) {
+  extension = 'm4a';
+}
+
+const filename = `voice_sample.${extension}`;
+
+fd.append('audio_file', audioBlob, filename);
   fd.append('name', document.getElementById('name').value.trim());
   fd.append('gender', document.getElementById('gender').value);
   fd.append('age_group', document.getElementById('ageGroup').value);
