@@ -564,6 +564,46 @@
     font-weight: 600;
   }
 
+
+  .environment-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .environment-item {
+    background: linear-gradient(135deg, #EEF4FF, #F0FAFA);
+    border: 1px solid rgba(26,58,107,0.12);
+    border-radius: 14px;
+    padding: 16px 12px;
+    text-align: center;
+  }
+
+  .environment-label {
+    color: var(--gray);
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+
+  .environment-value {
+    color: var(--navy);
+    font-size: 22px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .environment-status {
+    margin-top: 12px;
+    color: var(--gray);
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  @media (max-width: 480px) {
+    .environment-grid { grid-template-columns: 1fr; }
+  }
+
 </style>
 </head>
 <body>
@@ -664,6 +704,33 @@
     </div>
   </div>
 
+
+
+  <div class="card">
+    <div class="card-title">
+      <div class="icon">🌤️</div>
+      板橋即時環境資料
+    </div>
+
+    <div class="environment-grid">
+      <div class="environment-item">
+        <div class="environment-label">氣溫</div>
+        <div class="environment-value" id="banqiaoTemperature">讀取中</div>
+      </div>
+      <div class="environment-item">
+        <div class="environment-label">相對濕度</div>
+        <div class="environment-value" id="banqiaoHumidity">讀取中</div>
+      </div>
+      <div class="environment-item">
+        <div class="environment-label">PM2.5</div>
+        <div class="environment-value" id="banqiaoPm25">讀取中</div>
+      </div>
+    </div>
+
+    <div class="environment-status" id="environmentStatus">
+      正在取得板橋目前環境資料…
+    </div>
+  </div>
 
 
   <div class="card">
@@ -812,12 +879,109 @@
 <script>
 const WEBHOOK_URL = 'https://bunn8ntest.zeabur.app/webhook/6e8abf9f-c5fa-4ae5-ad67-a662413eee88';
 
+// 板橋區中心附近固定座標，不使用受試者定位
+const BANQIAO_LATITUDE = 25.0114;
+const BANQIAO_LONGITUDE = 121.4618;
+
+let banqiaoEnvironment = null;
+
 let mediaRecorder = null;
 let audioChunks = [];
 let audioBlob = null;
 let isRecording = false;
 let timerInterval = null;
 let seconds = 0;
+
+
+async function fetchBanqiaoEnvironment() {
+  const statusEl = document.getElementById('environmentStatus');
+
+  statusEl.textContent = '正在更新板橋目前環境資料…';
+
+  const weatherUrl =
+    `https://api.open-meteo.com/v1/forecast` +
+    `?latitude=${BANQIAO_LATITUDE}` +
+    `&longitude=${BANQIAO_LONGITUDE}` +
+    `&current=temperature_2m,relative_humidity_2m` +
+    `&timezone=Asia%2FTaipei`;
+
+  const airQualityUrl =
+    `https://air-quality-api.open-meteo.com/v1/air-quality` +
+    `?latitude=${BANQIAO_LATITUDE}` +
+    `&longitude=${BANQIAO_LONGITUDE}` +
+    `&current=pm2_5` +
+    `&timezone=Asia%2FTaipei`;
+
+  try {
+    const [weatherRes, airQualityRes] = await Promise.all([
+      fetch(weatherUrl, { cache: 'no-store' }),
+      fetch(airQualityUrl, { cache: 'no-store' })
+    ]);
+
+    if (!weatherRes.ok || !airQualityRes.ok) {
+      throw new Error(
+        `Environment API error: weather=${weatherRes.status}, air=${airQualityRes.status}`
+      );
+    }
+
+    const [weatherData, airQualityData] = await Promise.all([
+      weatherRes.json(),
+      airQualityRes.json()
+    ]);
+
+    const temperature = weatherData?.current?.temperature_2m;
+    const humidity = weatherData?.current?.relative_humidity_2m;
+    const pm25 = airQualityData?.current?.pm2_5;
+
+    if (![temperature, humidity, pm25].every(Number.isFinite)) {
+      throw new Error('環境 API 回傳資料不完整');
+    }
+
+    banqiaoEnvironment = {
+      location: '新北市板橋區',
+      latitude: BANQIAO_LATITUDE,
+      longitude: BANQIAO_LONGITUDE,
+      temperature_c: temperature,
+      relative_humidity_percent: humidity,
+      pm2_5_ug_m3: pm25,
+      weather_observed_at: weatherData.current.time,
+      air_quality_observed_at: airQualityData.current.time,
+      fetched_at: new Date().toISOString(),
+      source: 'Open-Meteo'
+    };
+
+    document.getElementById('banqiaoTemperature').textContent = `${temperature} °C`;
+    document.getElementById('banqiaoHumidity').textContent = `${humidity} %`;
+    document.getElementById('banqiaoPm25').textContent = `${pm25} μg/m³`;
+    statusEl.textContent =
+      `資料時間：${formatTaipeiTime(banqiaoEnvironment.fetched_at)}｜來源：Open-Meteo`;
+
+    return banqiaoEnvironment;
+  } catch (error) {
+    console.error('取得板橋環境資料失敗：', error);
+    banqiaoEnvironment = null;
+
+    document.getElementById('banqiaoTemperature').textContent = '取得失敗';
+    document.getElementById('banqiaoHumidity').textContent = '取得失敗';
+    document.getElementById('banqiaoPm25').textContent = '取得失敗';
+    statusEl.textContent = '無法取得板橋環境資料，請確認網路後再送出。';
+
+    throw error;
+  }
+}
+
+function formatTaipeiTime(isoString) {
+  return new Intl.DateTimeFormat('zh-TW', {
+    timeZone: 'Asia/Taipei',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).format(new Date(isoString));
+}
 
 async function toggleRecord() {
   if (isRecording) {
@@ -915,9 +1079,15 @@ function getRadioLabel(name) {
 }
 
 function calculateActScore() {
-  return ['act_q1', 'act_q2', 'act_q3', 'act_q4', 'act_q5']
+  const values = ['act_q1', 'act_q2', 'act_q3', 'act_q4', 'act_q5']
     .map(getRadioValue)
-    .reduce((sum, value) => sum + Number(value || 0), 0)
+    .filter(Boolean);
+
+  // 完全未填時回傳空白；有填時加總已填答案
+  if (values.length === 0) return '';
+
+  return values
+    .reduce((sum, value) => sum + Number(value), 0)
     .toString();
 }
 
@@ -929,13 +1099,15 @@ async function submitData() {
     return alert('請選擇當天天氣');
   }
 
-  const actAnswers = ['act_q1', 'act_q2', 'act_q3', 'act_q4', 'act_q5'].map(getRadioValue);
-  if (actAnswers.some(v => !v)) {
-    return alert('請完成氣喘控制測驗（ACT）所有題目');
-  }
-
   if (!audioBlob) {
     return alert('請先完成錄音');
+  }
+
+  try {
+    // 每次送出前重新抓取，確保每筆回傳都是當下資料
+    await fetchBanqiaoEnvironment();
+  } catch (error) {
+    return alert('目前無法取得板橋氣溫、濕度與 PM2.5，請確認網路後再試一次。');
   }
 
   const btn = document.getElementById('submitBtn');
@@ -975,6 +1147,19 @@ fd.append('audio_file', audioBlob, filename);
   fd.append('act_q5_text', getRadioLabel('act_q5'));
   fd.append('act_score', calculateActScore());
   fd.append('privacy_agreement', 'agreed');
+
+  // 板橋即時環境資料
+  fd.append('environment_location', banqiaoEnvironment.location);
+  fd.append('environment_latitude', String(banqiaoEnvironment.latitude));
+  fd.append('environment_longitude', String(banqiaoEnvironment.longitude));
+  fd.append('temperature_c', String(banqiaoEnvironment.temperature_c));
+  fd.append('relative_humidity_percent', String(banqiaoEnvironment.relative_humidity_percent));
+  fd.append('pm2_5_ug_m3', String(banqiaoEnvironment.pm2_5_ug_m3));
+  fd.append('weather_observed_at', banqiaoEnvironment.weather_observed_at);
+  fd.append('air_quality_observed_at', banqiaoEnvironment.air_quality_observed_at);
+  fd.append('environment_fetched_at', banqiaoEnvironment.fetched_at);
+  fd.append('environment_source', banqiaoEnvironment.source);
+  fd.append('environment_json', JSON.stringify(banqiaoEnvironment));
 
   fd.append('timestamp', new Date().toISOString());
   fd.append('duration', String(Math.max(seconds - 1, 0)));
@@ -1027,6 +1212,11 @@ function animateProgress(from, to, duration) {
   }
   requestAnimationFrame(step);
 }
+window.addEventListener('DOMContentLoaded', () => {
+  fetchBanqiaoEnvironment().catch(() => {
+    // 畫面會顯示錯誤，送出時也會再次重試
+  });
+});
 </script>
 </body>
 </html>
