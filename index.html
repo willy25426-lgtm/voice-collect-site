@@ -1,207 +1,64 @@
 from pathlib import Path
-import re
 
-src = Path('/mnt/data/好呼吸_voice_api_v2_整合版.html')
-out = Path('/mnt/data/好呼吸_voice_api_v2_定位正式版.html')
+src = Path('/mnt/data/好呼吸_voice_api_v2_定位正式版.html')
+out = Path('/mnt/data/好呼吸_voice_api_v2_定位正式修正版.html')
+
 text = src.read_text(encoding='utf-8')
 
-# 1) Remove "研究版/研究分析" wording from AI result UI
-text = text.replace('聲音 AI 研究分析', '聲音 AI 分析結果')
-text = text.replace(
-    '本燈號為研究版顯示，係由現有 Model2 六類輸出暫時分組呈現，\n        僅供研究流程使用，不代表正式臨床診斷或醫療建議。',
-    '本結果為聲音 AI 輔助分析資訊，僅供參考，不能取代醫師診斷或醫療建議。'
-)
-text = text.replace('正在進行聲音 AI 研究分析，請稍候...', '正在進行聲音 AI 分析，請稍候...')
-text = text.replace('AI 分析與研究資料上傳完成！感謝您配合本院聲紋 AI 研究計畫。', 'AI 分析與資料上傳完成！感謝您的配合。')
-text = text.replace('Voice API v2 研究結果一併送入既有研究資料流程', 'Voice API v2 分析結果一併送入既有資料流程')
-text = text.replace('研究分類：class_', '模型分類：class_')
+# 1) 修正 Open-Meteo query 參數被錯誤轉碼的情況
+text = text.replace('`¤t=temperature_2m,relative_humidity_2m`',
+                    '`&current=temperature_2m,relative_humidity_2m`')
+text = text.replace('`¤t=pm2_5`',
+                    '`&current=pm2_5`')
 
-# 2) Rename environment UI from Banqiao to current location
-text = text.replace('板橋即時環境資料', '目前位置即時環境資料')
-text = text.replace('正在取得板橋目前環境資料…', '正在取得目前位置與環境資料…')
-text = text.replace('正在更新板橋目前環境資料…', '正在更新目前位置與環境資料…')
-text = text.replace('無法取得板橋環境資料，請確認網路後再送出。', '無法取得目前位置的環境資料，請確認定位權限與網路後再送出。')
-text = text.replace('目前無法取得板橋氣溫、濕度與 PM2.5，請確認網路後再試一次。', '目前無法取得所在地的氣溫、濕度與 PM2.5，請確認定位權限與網路後再試一次。')
-text = text.replace('取得板橋環境資料失敗：', '取得目前位置環境資料失敗：')
-
-# Keep element IDs for compatibility, but change comments and logic.
-text = text.replace('// 板橋區中心附近固定座標，不使用受試者定位\nconst BANQIAO_LATITUDE = 25.0114;\nconst BANQIAO_LONGITUDE = 121.4618;\n\nlet banqiaoEnvironment = null;',
-"""// 依使用者目前定位取得環境資料，不再使用固定板橋座標。
-let currentEnvironment = null;""")
-
-# Replace the entire fixed-coordinate fetch function with current-location version.
-pattern = re.compile(
-    r"async function fetchBanqiaoEnvironment\(\) \{.*?\n\}\n\n\nfunction formatTaipeiTime",
-    re.S
-)
-
-replacement = r"""function getCurrentPositionAsync() {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('此瀏覽器不支援定位功能'));
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      resolve,
-      reject,
-      {
-        enableHighAccuracy: false,
-        timeout: 12000,
-        maximumAge: 5 * 60 * 1000
-      }
-    );
-  });
-}
-
-async function fetchCurrentEnvironment() {
-  const statusEl = document.getElementById('environmentStatus');
-  statusEl.textContent = '正在取得目前位置與環境資料…';
-
-  try {
-    const position = await getCurrentPositionAsync();
-    const latitude = position.coords.latitude;
-    const longitude = position.coords.longitude;
-
-    const weatherUrl =
-      `https://api.open-meteo.com/v1/forecast` +
-      `?latitude=${encodeURIComponent(latitude)}` +
-      `&longitude=${encodeURIComponent(longitude)}` +
-      `&current=temperature_2m,relative_humidity_2m` +
-      `&timezone=Asia%2FTaipei`;
-
-    const airQualityUrl =
-      `https://air-quality-api.open-meteo.com/v1/air-quality` +
-      `?latitude=${encodeURIComponent(latitude)}` +
-      `&longitude=${encodeURIComponent(longitude)}` +
-      `&current=pm2_5` +
-      `&timezone=Asia%2FTaipei`;
-
-    const [weatherRes, airQualityRes] = await Promise.all([
-      fetch(weatherUrl, { cache: 'no-store' }),
-      fetch(airQualityUrl, { cache: 'no-store' })
-    ]);
-
-    if (!weatherRes.ok || !airQualityRes.ok) {
-      throw new Error(
-        `Environment API error: weather=${weatherRes.status}, air=${airQualityRes.status}`
-      );
-    }
-
-    const [weatherData, airQualityData] = await Promise.all([
-      weatherRes.json(),
-      airQualityRes.json()
-    ]);
-
-    const temperature = weatherData?.current?.temperature_2m;
-    const humidity = weatherData?.current?.relative_humidity_2m;
-    const pm25 = airQualityData?.current?.pm2_5;
-
-    if (![temperature, humidity, pm25].every(Number.isFinite)) {
-      throw new Error('環境 API 回傳資料不完整');
-    }
-
-    currentEnvironment = {
-      location: '目前定位位置',
-      latitude,
-      longitude,
-      temperature_c: temperature,
-      relative_humidity_percent: humidity,
-      pm2_5_ug_m3: pm25,
-      weather_observed_at: weatherData.current.time,
-      air_quality_observed_at: airQualityData.current.time,
-      fetched_at: new Date().toISOString(),
-      source: 'Open-Meteo',
-      location_source: 'browser_geolocation',
-      location_accuracy_m: Number.isFinite(position.coords.accuracy)
-        ? Math.round(position.coords.accuracy)
-        : null
-    };
-
-    document.getElementById('banqiaoTemperature').textContent = `${temperature} °C`;
-    document.getElementById('banqiaoHumidity').textContent = `${humidity} %`;
-    document.getElementById('banqiaoPm25').textContent = `${pm25} μg/m³`;
-
-    const accuracyText = currentEnvironment.location_accuracy_m !== null
-      ? `｜定位精度：約 ${currentEnvironment.location_accuracy_m} m`
-      : '';
-
-    statusEl.textContent =
-      `資料時間：${formatTaipeiTime(currentEnvironment.fetched_at)}｜來源：Open-Meteo${accuracyText}`;
-
-    return currentEnvironment;
-  } catch (error) {
-    console.error('取得目前位置環境資料失敗：', error);
-    currentEnvironment = null;
-
-    document.getElementById('banqiaoTemperature').textContent = '取得失敗';
-    document.getElementById('banqiaoHumidity').textContent = '取得失敗';
-    document.getElementById('banqiaoPm25').textContent = '取得失敗';
-
-    if (error && (error.code === 1 || error.name === 'NotAllowedError')) {
-      statusEl.textContent = '定位權限未開啟，請允許定位後再試一次。';
-    } else if (error && error.code === 2) {
-      statusEl.textContent = '目前無法取得位置，請稍後再試。';
-    } else if (error && error.code === 3) {
-      statusEl.textContent = '取得位置逾時，請確認定位服務後再試。';
-    } else {
-      statusEl.textContent = '無法取得目前位置的環境資料，請確認定位權限與網路。';
-    }
-
-    throw error;
-  }
-}
-
-
-function formatTaipeiTime"""
-
-text, n = pattern.subn(replacement, text, count=1)
-if n != 1:
-    raise RuntimeError("未找到固定板橋環境函式，無法替換")
-
-# Replace all remaining state/function references
-text = text.replace('banqiaoEnvironment', 'currentEnvironment')
-text = text.replace('fetchBanqiaoEnvironment()', 'fetchCurrentEnvironment()')
-text = text.replace('// 板橋即時環境資料', '// 目前定位環境資料')
-
-# 3) Clarify API port architecture in code comments and placeholder
-old_api_comment = """// 醫院正式 HTTPS 443 網址確認後，只需修改這一行。
-// 例：https://voice.example.org/api/v2/voice/predict
-const VOICE_API_URL = 'https://YOUR-HOSPITAL-DOMAIN.example/api/v2/voice/predict';"""
-new_api_comment = """// Voice API 連線規則：
-// - 網頁對外一律走 HTTPS 443（網址不需寫 :443）
-// - 醫院反向代理再轉到 Ubuntu 內部 Voice API 127.0.0.1:5100
-// - 舊 APP 的舊 API 仍保留 5000，不提供本網頁使用
-// 醫院正式 HTTPS 網域確認後，只需修改這一行。
+# 2) 移除瀏覽器端不需要知道的內部 port 設定
+old_block = """// Voice API 連線規則：
+// 網頁對外：HTTPS 443（網址不需要寫 :443）
+// 醫院反向代理：轉送到 Ubuntu 內部 Voice API 127.0.0.1:5100
+// 舊 APP 的舊 Flask API 仍使用 5000，本網頁不使用 5000。
 const VOICE_API_URL = 'https://YOUR-HOSPITAL-DOMAIN.example/api/v2/voice/predict';
 const VOICE_API_EXTERNAL_PORT = 443;
 const VOICE_API_INTERNAL_PORT = 5100;"""
-if old_api_comment not in text:
-    raise RuntimeError("找不到 Voice API 設定區塊")
-text = text.replace(old_api_comment, new_api_comment, 1)
 
-# Add port metadata into webhook payload for traceability
-anchor = "  fd.append('ai_request_id', latestAiResult.request_id || '');"
-port_fields = """  fd.append('ai_request_id', latestAiResult.request_id || '');
-  fd.append('ai_external_port', String(VOICE_API_EXTERNAL_PORT));
-  fd.append('ai_internal_service_port', String(VOICE_API_INTERNAL_PORT));"""
-if anchor not in text:
-    raise RuntimeError("找不到 AI request_id 欄位")
-text = text.replace(anchor, port_fields, 1)
+new_block = """// Voice API：瀏覽器只連醫院正式 HTTPS 網址。
+// 正式反向代理與內部服務 port 由伺服器端管理，前端不需要知道。
+// 醫院正式網域確認後，只需修改這一行。
+const VOICE_API_URL = 'https://YOUR-HOSPITAL-DOMAIN.example/api/v2/voice/predict';"""
 
-# Make initial DOM load use current position function
-text = text.replace(
-    "fetchCurrentEnvironment().catch(() => {\n    // 畫面會顯示錯誤，送出時也會再次重試",
-    "fetchCurrentEnvironment().catch(() => {\n    // 畫面會顯示定位/環境錯誤，送出時也會再次重試"
-)
+if old_block in text:
+    text = text.replace(old_block, new_block, 1)
+else:
+    # 相容另一版註解
+    text = text.replace(
+        "const VOICE_API_EXTERNAL_PORT = 443;\nconst VOICE_API_INTERNAL_PORT = 5100;\n",
+        ""
+    )
 
-# Slightly update privacy copy to no longer claim a specific cloud if not guaranteed
-text = text.replace('錄音檔案將以加密方式傳輸至指定雲端', '錄音檔案將透過 HTTPS 加密傳輸至指定系統')
+# 3) 移除 webhook 中的 port metadata
+text = text.replace("  fd.append('ai_external_port', String(VOICE_API_EXTERNAL_PORT));\n", "")
+text = text.replace("  fd.append('ai_internal_service_port', String(VOICE_API_INTERNAL_PORT));\n", "")
+
+# 4) 再做一次保險：確保沒有殘留內部 port 變數
+for needle in ["VOICE_API_INTERNAL_PORT", "VOICE_API_EXTERNAL_PORT"]:
+    if needle in text:
+        raise RuntimeError(f"仍殘留不應存在的變數：{needle}")
+
+# 5) 確認定位函式與 current 參數存在
+required = [
+    "navigator.geolocation.getCurrentPosition",
+    "&current=temperature_2m,relative_humidity_2m",
+    "&current=pm2_5",
+    "const VOICE_API_URL = 'https://YOUR-HOSPITAL-DOMAIN.example/api/v2/voice/predict';"
+]
+missing = [x for x in required if x not in text]
+if missing:
+    raise RuntimeError(f"必要內容缺失：{missing}")
 
 out.write_text(text, encoding='utf-8')
 
-print(f"完成：{out}")
-print("已調整：")
-print("1. 移除研究版字樣，改為一般 AI 分析結果 + 輔助參考聲明")
-print("2. 固定板橋座標改為瀏覽器即時定位")
-print("3. API 外部連線固定 HTTPS 443，內部 Voice API 服務固定 5100")
+print(f"已建立：{out}")
+print("修正完成：")
+print("1. Open-Meteo query 改回正確的 &current=")
+print("2. 前端只保留 HTTPS VOICE_API_URL")
+print("3. 移除 443/5100 的前端常數與 webhook port 欄位")
+print("4. 保留依使用者目前定位取得氣溫、濕度、PM2.5")
