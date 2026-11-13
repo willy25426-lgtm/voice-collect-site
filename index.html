@@ -1,64 +1,77 @@
 from pathlib import Path
 
 src = Path('/mnt/data/好呼吸_voice_api_v2_定位正式版.html')
-out = Path('/mnt/data/好呼吸_voice_api_v2_定位正式修正版.html')
+if not src.exists():
+    src = Path('/mnt/data/好呼吸_voice_api_v2_定位正式修正版.html')
 
+out = Path('/mnt/data/好呼吸_voice_api_v2_最終修正版.html')
 text = src.read_text(encoding='utf-8')
 
-# 1) 修正 Open-Meteo query 參數被錯誤轉碼的情況
-text = text.replace('`¤t=temperature_2m,relative_humidity_2m`',
-                    '`&current=temperature_2m,relative_humidity_2m`')
-text = text.replace('`¤t=pm2_5`',
-                    '`&current=pm2_5`')
+# 修正 Open-Meteo query 參數
+text = text.replace('¤t=temperature_2m,relative_humidity_2m',
+                    '&current=temperature_2m,relative_humidity_2m')
+text = text.replace('¤t=pm2_5',
+                    '&current=pm2_5')
 
-# 2) 移除瀏覽器端不需要知道的內部 port 設定
-old_block = """// Voice API 連線規則：
-// 網頁對外：HTTPS 443（網址不需要寫 :443）
-// 醫院反向代理：轉送到 Ubuntu 內部 Voice API 127.0.0.1:5100
-// 舊 APP 的舊 Flask API 仍使用 5000，本網頁不使用 5000。
-const VOICE_API_URL = 'https://YOUR-HOSPITAL-DOMAIN.example/api/v2/voice/predict';
-const VOICE_API_EXTERNAL_PORT = 443;
-const VOICE_API_INTERNAL_PORT = 5100;"""
+# 移除前端 port 常數（若仍存在）
+for line in [
+    "const VOICE_API_EXTERNAL_PORT = 443;\n",
+    "const VOICE_API_INTERNAL_PORT = 5100;\n",
+]:
+    text = text.replace(line, "")
 
-new_block = """// Voice API：瀏覽器只連醫院正式 HTTPS 網址。
-// 正式反向代理與內部服務 port 由伺服器端管理，前端不需要知道。
-// 醫院正式網域確認後，只需修改這一行。
-const VOICE_API_URL = 'https://YOUR-HOSPITAL-DOMAIN.example/api/v2/voice/predict';"""
+# 移除 webhook port metadata（若仍存在）
+for line in [
+    "  fd.append('ai_external_port', String(VOICE_API_EXTERNAL_PORT));\n",
+    "  fd.append('ai_internal_service_port', String(VOICE_API_INTERNAL_PORT));\n",
+]:
+    text = text.replace(line, "")
 
-if old_block in text:
-    text = text.replace(old_block, new_block, 1)
-else:
-    # 相容另一版註解
-    text = text.replace(
-        "const VOICE_API_EXTERNAL_PORT = 443;\nconst VOICE_API_INTERNAL_PORT = 5100;\n",
-        ""
-    )
+# 將 Voice API 註解整理乾淨
+import re
+text = re.sub(
+    r"// Voice API 連線規則：.*?const VOICE_API_URL = 'https://YOUR-HOSPITAL-DOMAIN\.example/api/v2/voice/predict';",
+    "// Voice API：前端只連醫院正式 HTTPS 網址。\n"
+    "// 正式反向代理與內部服務 port 由伺服器端管理，前端不需要知道。\n"
+    "// 醫院正式網域確認後，只需修改這一行。\n"
+    "const VOICE_API_URL = 'https://YOUR-HOSPITAL-DOMAIN.example/api/v2/voice/predict';",
+    text,
+    flags=re.S
+)
 
-# 3) 移除 webhook 中的 port metadata
-text = text.replace("  fd.append('ai_external_port', String(VOICE_API_EXTERNAL_PORT));\n", "")
-text = text.replace("  fd.append('ai_internal_service_port', String(VOICE_API_INTERNAL_PORT));\n", "")
+# 若沒有匹配到上面區塊，至少確保 URL 存在
+voice_line = "const VOICE_API_URL = 'https://YOUR-HOSPITAL-DOMAIN.example/api/v2/voice/predict';"
+if voice_line not in text:
+    raise RuntimeError("找不到 VOICE_API_URL，請確認來源檔案版本")
 
-# 4) 再做一次保險：確保沒有殘留內部 port 變數
-for needle in ["VOICE_API_INTERNAL_PORT", "VOICE_API_EXTERNAL_PORT"]:
-    if needle in text:
-        raise RuntimeError(f"仍殘留不應存在的變數：{needle}")
-
-# 5) 確認定位函式與 current 參數存在
+# 驗證定位與 Open-Meteo 必要內容
 required = [
     "navigator.geolocation.getCurrentPosition",
     "&current=temperature_2m,relative_humidity_2m",
     "&current=pm2_5",
-    "const VOICE_API_URL = 'https://YOUR-HOSPITAL-DOMAIN.example/api/v2/voice/predict';"
+    voice_line
 ]
-missing = [x for x in required if x not in text]
+missing = [item for item in required if item not in text]
 if missing:
     raise RuntimeError(f"必要內容缺失：{missing}")
 
+# 驗證不該出現的內容
+forbidden = [
+    "¤t=temperature_2m,relative_humidity_2m",
+    "¤t=pm2_5",
+    "VOICE_API_INTERNAL_PORT",
+    "VOICE_API_EXTERNAL_PORT",
+]
+found = [item for item in forbidden if item in text]
+if found:
+    raise RuntimeError(f"仍有不應存在的內容：{found}")
+
 out.write_text(text, encoding='utf-8')
 
-print(f"已建立：{out}")
-print("修正完成：")
-print("1. Open-Meteo query 改回正確的 &current=")
-print("2. 前端只保留 HTTPS VOICE_API_URL")
-print("3. 移除 443/5100 的前端常數與 webhook port 欄位")
-print("4. 保留依使用者目前定位取得氣溫、濕度、PM2.5")
+print(f"完成：{out}")
+print("確認：")
+print("1. Open-Meteo 使用正確的 &current= 參數")
+print("2. 依瀏覽器目前定位取得氣溫、濕度、PM2.5")
+print("3. 前端只保留 HTTPS VOICE_API_URL")
+print("4. 未寫死 5000 / 5100")
+print("5. 未殘留 ¤t=")
