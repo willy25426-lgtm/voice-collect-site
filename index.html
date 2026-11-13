@@ -1,918 +1,82 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>好呼吸</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --navy:      #0F2744;
-    --navy-mid:  #1A3A6B;
-    --navy-lite: #2A5298;
-    --accent:    #4A9EFF;
-    --accent2:   #00D4AA;
-    --white:     #FFFFFF;
-    --off-white: #F4F7FB;
-    --gray:      #8899AA;
-    --gray-lite: #D8E4F0;
-    --danger:    #FF4D6D;
-    --card-bg:   rgba(255,255,255,0.95);
-    --shadow:    0 20px 60px rgba(15,39,68,0.15);
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--navy);
-    min-height: 100vh;
-    color: var(--navy);
-    overflow-x: hidden;
-  }
-
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(42,82,152,0.6) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 80% at 80% 90%, rgba(0,212,170,0.12) 0%, transparent 55%),
-      radial-gradient(ellipse 50% 40% at 90% 20%, rgba(74,158,255,0.1) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .bg-waves {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    height: 200px;
-    opacity: 0.06;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .container {
-    position: relative;
-    z-index: 1;
-    max-width: 680px;
-    margin: 0 auto;
-    padding: 40px 20px 60px;
-  }
-
-  header {
-    text-align: center;
-    margin-bottom: 40px;
-    animation: fadeDown 0.8s ease both;
-  }
-
-  .logo-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 50px;
-    padding: 8px 20px;
-    margin-bottom: 24px;
-    backdrop-filter: blur(10px);
-  }
-
-  .logo-dot {
-    width: 8px; height: 8px;
-    background: var(--accent2);
-    border-radius: 50%;
-    animation: pulse-dot 2s ease infinite;
-  }
-
-  .logo-badge span {
-    color: rgba(255,255,255,0.75);
-    font-size: 13px;
-    letter-spacing: 0.08em;
-    font-weight: 500;
-  }
-
-  header h1 {
-    font-family: 'Noto Serif TC', serif;
-    font-size: clamp(26px, 5vw, 36px);
-    color: var(--white);
-    font-weight: 700;
-    line-height: 1.3;
-    margin-bottom: 12px;
-    text-shadow: 0 2px 20px rgba(0,0,0,0.3);
-  }
-
-  header p {
-    color: rgba(255,255,255,0.55);
-    font-size: 15px;
-    line-height: 1.7;
-    max-width: 460px;
-    margin: 0 auto;
-  }
-
-  .card {
-    background: var(--card-bg);
-    border-radius: 24px;
-    box-shadow: var(--shadow);
-    padding: 36px;
-    margin-bottom: 20px;
-    animation: fadeUp 0.7s ease both;
-    border: 1px solid rgba(255,255,255,0.8);
-  }
-
-  .card:nth-child(2) { animation-delay: 0.1s; }
-  .card:nth-child(3) { animation-delay: 0.2s; }
-  .card:nth-child(4) { animation-delay: 0.3s; }
-
-  .card-title {
-    font-family: 'Noto Serif TC', serif;
-    font-size: 17px;
-    font-weight: 600;
-    color: var(--navy);
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .card-title .icon {
-    width: 32px; height: 32px;
-    background: linear-gradient(135deg, var(--navy-mid), var(--navy-lite));
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    flex-shrink: 0;
-  }
-
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    margin-bottom: 14px;
-  }
-
-  .form-row.full { grid-template-columns: 1fr; }
-
-  .field label {
-    display: block;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--gray);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-
-  .field input, .field select {
-    width: 100%;
-    padding: 12px 14px;
-    border: 1.5px solid var(--gray-lite);
-    border-radius: 10px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    color: var(--navy);
-    background: var(--off-white);
-    transition: all 0.2s;
-    outline: none;
-    appearance: none;
-  }
-
-  .field select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238899AA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    padding-right: 36px;
-    cursor: pointer;
-  }
-
-  .field input:focus, .field select:focus {
-    border-color: var(--navy-lite);
-    background: white;
-    box-shadow: 0 0 0 3px rgba(26,58,107,0.08);
-  }
-
-  .recorder-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 28px;
-    padding: 8px 0;
-  }
-
-  .prompt-box {
-    width: 100%;
-    background: linear-gradient(135deg, #EEF4FF, #F0FAFA);
-    border: 1px solid rgba(26,58,107,0.12);
-    border-radius: 14px;
-    padding: 20px 24px;
-    position: relative;
-  }
-
-  .prompt-box::before {
-    content: '📢 請朗讀以下文字';
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--navy-lite);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-
-  .prompt-text {
-    font-family: 'Noto Serif TC', serif;
-    font-size: 17px;
-    line-height: 1.8;
-    color: var(--navy);
-    font-weight: 600;
-  }
-
-  .record-btn-wrap {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-  }
-
-  .record-btn {
-    width: 96px; height: 96px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s, box-shadow 0.2s;
-    outline: none;
-    background: linear-gradient(135deg, var(--navy-mid), var(--navy-lite));
-    box-shadow: 0 8px 30px rgba(26,58,107,0.4);
-  }
-
-  .record-btn:hover { transform: scale(1.05); }
-  .record-btn:active { transform: scale(0.97); }
-
-  .record-btn svg { width: 36px; height: 36px; fill: white; transition: all 0.3s; }
-
-  .record-btn.recording {
-    background: linear-gradient(135deg, #c0392b, var(--danger));
-    box-shadow: 0 8px 30px rgba(255,77,109,0.5);
-    animation: record-pulse 1.5s ease infinite;
-  }
-
-  .record-btn.recording::before,
-  .record-btn.recording::after {
-    content: '';
-    position: absolute;
-    border-radius: 50%;
-    border: 2px solid rgba(255,77,109,0.4);
-    animation: ripple 1.5s ease infinite;
-  }
-  .record-btn.recording::before { width: 120px; height: 120px; animation-delay: 0s; }
-  .record-btn.recording::after  { width: 148px; height: 148px; animation-delay: 0.4s; }
-
-  .record-label {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--gray);
-    letter-spacing: 0.04em;
-  }
-
-  .waveform {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    height: 40px;
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .waveform.active { opacity: 1; }
-
-  .waveform .bar {
-    width: 4px;
-    border-radius: 2px;
-    background: linear-gradient(to top, var(--navy-mid), var(--accent));
-    animation: wave 0.8s ease infinite;
-  }
-
-  .waveform .bar:nth-child(1)  { height: 12px; animation-delay: 0.0s; }
-  .waveform .bar:nth-child(2)  { height: 20px; animation-delay: 0.1s; }
-  .waveform .bar:nth-child(3)  { height: 30px; animation-delay: 0.2s; }
-  .waveform .bar:nth-child(4)  { height: 22px; animation-delay: 0.15s; }
-  .waveform .bar:nth-child(5)  { height: 36px; animation-delay: 0.05s; }
-  .waveform .bar:nth-child(6)  { height: 28px; animation-delay: 0.25s; }
-  .waveform .bar:nth-child(7)  { height: 18px; animation-delay: 0.1s; }
-  .waveform .bar:nth-child(8)  { height: 32px; animation-delay: 0.2s; }
-  .waveform .bar:nth-child(9)  { height: 24px; animation-delay: 0.05s; }
-  .waveform .bar:nth-child(10) { height: 14px; animation-delay: 0.15s; }
-  .waveform .bar:nth-child(11) { height: 26px; animation-delay: 0.3s; }
-  .waveform .bar:nth-child(12) { height: 16px; animation-delay: 0.1s; }
-
-  .timer {
-    font-size: 28px;
-    font-weight: 300;
-    color: var(--navy);
-    letter-spacing: 0.08em;
-    font-variant-numeric: tabular-nums;
-    min-width: 80px;
-    text-align: center;
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .timer.active { opacity: 1; }
-
-  .playback-area {
-    width: 100%;
-    display: none;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .playback-area.show { display: flex; }
-
-  .audio-player {
-    width: 100%;
-    accent-color: var(--navy-mid);
-    height: 36px;
-  }
-
-  .playback-actions {
-    display: flex;
-    gap: 10px;
-  }
-
-  .btn {
-    padding: 13px 24px;
-    border-radius: 10px;
-    border: none;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    outline: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .btn-primary {
-    background: linear-gradient(135deg, var(--navy-mid), var(--navy-lite));
-    color: white;
-    box-shadow: 0 4px 15px rgba(26,58,107,0.35);
-    flex: 1;
-  }
-
-  .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(26,58,107,0.45);
-  }
-
-  .btn-primary:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  .btn-danger {
-    background: #FFF0F3;
-    color: var(--danger);
-    border: 1.5px solid #FFDDE4;
-  }
-
-  .btn-danger:hover { background: #FFE0E7; }
-
-  .info-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .info-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    font-size: 13.5px;
-    color: #445566;
-    line-height: 1.6;
-  }
-
-  .info-list li::before {
-    content: '';
-    width: 6px; height: 6px;
-    background: var(--accent2);
-    border-radius: 50%;
-    flex-shrink: 0;
-    margin-top: 7px;
-  }
-
-  .submit-status {
-    text-align: center;
-    padding: 16px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 500;
-    display: none;
-  }
-
-  .submit-status.show { display: block; }
-  .submit-status.loading { background: #EEF4FF; color: var(--navy-mid); }
-  .submit-status.success { background: #E6FBF5; color: #00875A; }
-  .submit-status.error   { background: #FFF0F3; color: var(--danger); }
-
-  footer {
-    text-align: center;
-    color: rgba(255,255,255,0.3);
-    font-size: 12px;
-    margin-top: 20px;
-    animation: fadeUp 0.7s 0.5s ease both;
-  }
-
-  .progress-bar {
-    width: 100%;
-    height: 3px;
-    background: var(--gray-lite);
-    border-radius: 2px;
-    overflow: hidden;
-    display: none;
-  }
-
-  .progress-bar.show { display: block; }
-
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--navy-mid), var(--accent2));
-    border-radius: 2px;
-    width: 0%;
-    transition: width 0.3s;
-  }
-
-  @keyframes fadeDown {
-    from { opacity: 0; transform: translateY(-20px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes wave {
-    0%, 100% { transform: scaleY(0.4); }
-    50%       { transform: scaleY(1.2); }
-  }
-
-  @keyframes ripple {
-    0%   { transform: scale(0.8); opacity: 1; }
-    100% { transform: scale(1.4); opacity: 0; }
-  }
-
-  @keyframes record-pulse {
-    0%, 100% { box-shadow: 0 8px 30px rgba(255,77,109,0.5); }
-    50%       { box-shadow: 0 8px 40px rgba(255,77,109,0.8); }
-  }
-
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50%       { opacity: 0.5; transform: scale(0.7); }
-  }
-
-  @media (max-width: 480px) {
-    .card { padding: 24px 20px; }
-    .form-row { grid-template-columns: 1fr; }
-    .container { padding: 24px 16px 48px; }
-  }
-
-
-  .brand-icon {
-    width: 92px;
-    height: 92px;
-    border-radius: 24px;
-    object-fit: cover;
-    box-shadow: 0 12px 35px rgba(0,212,170,0.28);
-    border: 2px solid rgba(255,255,255,0.35);
-    margin-bottom: 16px;
-  }
-
-  .privacy-box {
-    background: #FFF8E8;
-    border: 1px solid #FFE1A8;
-    color: #6B4A00;
-    border-radius: 12px;
-    padding: 14px 16px;
-    font-size: 13.5px;
-    line-height: 1.7;
-    margin-bottom: 18px;
-  }
-
-  .privacy-box strong {
-    display: block;
-    color: #A06400;
-    margin-bottom: 4px;
-  }
-
-  .question-card {
-    background: #FFFFFF;
-    border: 1px solid rgba(26,58,107,0.12);
-    border-radius: 16px;
-    padding: 18px 18px 14px;
-    margin-bottom: 14px;
-  }
-
-  .question-title {
-    font-family: 'Noto Serif TC', serif;
-    font-size: 15px;
-    line-height: 1.6;
-    font-weight: 600;
-    color: var(--navy);
-    margin-bottom: 12px;
-  }
-
-  .radio-options {
-    display: grid;
-    gap: 8px;
-  }
-
-  .radio-options label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: var(--off-white);
-    color: #445566;
-    font-size: 14px;
-    cursor: pointer;
-    border: 1px solid transparent;
-  }
-
-  .radio-options input {
-    accent-color: var(--navy-mid);
-  }
-
-  .radio-options label:has(input:checked) {
-    border-color: var(--navy-lite);
-    background: #EEF4FF;
-    color: var(--navy);
-    font-weight: 600;
-  }
-
-
-  .environment-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-  }
-
-  .environment-item {
-    background: linear-gradient(135deg, #EEF4FF, #F0FAFA);
-    border: 1px solid rgba(26,58,107,0.12);
-    border-radius: 14px;
-    padding: 16px 12px;
-    text-align: center;
-  }
-
-  .environment-label {
-    color: var(--gray);
-    font-size: 12px;
-    margin-bottom: 8px;
-  }
-
-  .environment-value {
-    color: var(--navy);
-    font-size: 22px;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .environment-status {
-    margin-top: 12px;
-    color: var(--gray);
-    font-size: 12px;
-    line-height: 1.5;
-    text-align: center;
-  }
-
-  @media (max-width: 480px) {
-    .environment-grid { grid-template-columns: 1fr; }
-  }
-
-</style>
-</head>
-<body>
-
-<svg class="bg-waves" viewBox="0 0 1440 200" preserveAspectRatio="none">
-  <path d="M0,100 C360,160 720,40 1080,100 C1260,130 1380,90 1440,100 L1440,200 L0,200Z" fill="white"/>
-  <path d="M0,140 C300,80 600,180 900,130 C1100,95 1300,155 1440,140 L1440,200 L0,200Z" fill="white" opacity="0.5"/>
-</svg>
-
-<div class="container">
-
-  <header>
-  
-  <!-- ICON 最上面置中 -->
-  <div style="display:flex; justify-content:center; margin-bottom:16px;">
-    <img 
-      src="https://raw.githubusercontent.com/willy25426-lgtm/voice-collect-site/main/S__956481538.jpg"
-      style="
-        width:100px;
-        border-radius:24px;
-        box-shadow:0 12px 35px rgba(0,0,0,0.25);
-      "
-    >
-  </div>
-
-  <!-- 標題 -->
-  <h1 style="text-align:center;">好呼吸</h1>
-
-  <!-- 副標 -->
-  <p style="text-align:center;">
-    感謝您配合本院 AI 聲紋研究計畫。<br>
-    請依照指示完成資料填寫與錄音。
-  </p>
-
-</header>
-
-  <div class="card">
-    <div class="card-title">
-      <div class="icon">👤</div>
-      基本資料
-    </div>
-    <div class="form-row">
-      <div class="field">
-        <label>姓名</label>
-        <input type="text" id="name" placeholder="請輸入姓名">
-      </div>
-      <div class="field">
-        <label>生理性別</label>
-        <select id="gender">
-          <option value="">請選擇</option>
-          <option value="male">生理男</option>
-          <option value="female">生理女</option>
-          <option value="other">其他</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-row full">
-      <div class="field">
-        <label>年齡區間</label>
-        <select id="ageGroup">
-          <option value="">請選擇</option>
-          <option value="under18">18歲以下</option>
-          <option value="18-30">18–30歲</option>
-          <option value="31-45">31–45歲</option>
-          <option value="46-60">46–60歲</option>
-          <option value="61-75">61–75歲</option>
-          <option value="over75">75歲以上</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-row full">
-      <div class="field">
-        <label>主要診斷</label>
-        <select id="diagnosis">
-          <option value="">請選擇</option>
-          <option value="asthma">氣喘（Asthma）</option>
-          <option value="copd">慢性阻塞性肺病（COPD）</option>
-          <option value="rhinitis">過敏性鼻炎</option>
-          <option value="other_resp">其他呼吸道疾病</option>
-          <option value="normal">健康受試者</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-row full">
-      <div class="field">
-        <label>當天天氣</label>
-        <select id="weather">
-          <option value="">請選擇</option>
-          <option value="sunny">晴天</option>
-          <option value="cloudy">多雲</option>
-          <option value="rainy">雨天</option>
-          <option value="humid">悶熱</option>
-          <option value="cold">寒冷</option>
-          <option value="windy">風大</option>
-          <option value="air_poor">空氣品質不佳</option>
-        </select>
-      </div>
-    </div>
-  </div>
-
-
-
-  <div class="card">
-    <div class="card-title">
-      <div class="icon">🌤️</div>
-      板橋即時環境資料
-    </div>
-
-    <div class="environment-grid">
-      <div class="environment-item">
-        <div class="environment-label">氣溫</div>
-        <div class="environment-value" id="banqiaoTemperature">讀取中</div>
-      </div>
-      <div class="environment-item">
-        <div class="environment-label">相對濕度</div>
-        <div class="environment-value" id="banqiaoHumidity">讀取中</div>
-      </div>
-      <div class="environment-item">
-        <div class="environment-label">PM2.5</div>
-        <div class="environment-value" id="banqiaoPm25">讀取中</div>
-      </div>
-    </div>
-
-    <div class="environment-status" id="environmentStatus">
-      正在取得板橋目前環境資料…
-    </div>
-  </div>
-
-
-  <div class="card">
-    <div class="card-title">
-      <div class="icon">📋</div>
-      自我檢測｜氣喘控制測驗（ACT）
-    </div>
-
-    <div class="question-card">
-      <div class="question-title">第一題：在「過去 4 週」中，您的「氣喘」會讓您無法完成一般的工作、課業或家事嗎？</div>
-      <div class="radio-options">
-        <label><input type="radio" name="act_q1" value="1" data-label="總是如此">(1) 總是如此</label>
-        <label><input type="radio" name="act_q1" value="2" data-label="經常如此">(2) 經常如此</label>
-        <label><input type="radio" name="act_q1" value="3" data-label="有時如此">(3) 有時如此</label>
-        <label><input type="radio" name="act_q1" value="4" data-label="很少如此">(4) 很少如此</label>
-        <label><input type="radio" name="act_q1" value="5" data-label="不曾如此">(5) 不曾如此</label>
-      </div>
-    </div>
-
-    <div class="question-card">
-      <div class="question-title">第二題：在「過去 4 週」中，您多常發生呼吸急促的情形？</div>
-      <div class="radio-options">
-        <label><input type="radio" name="act_q2" value="1" data-label="一天超過一次">(1) 一天超過一次</label>
-        <label><input type="radio" name="act_q2" value="2" data-label="一天一次">(2) 一天一次</label>
-        <label><input type="radio" name="act_q2" value="3" data-label="一週 3 至 6 次">(3) 一週 3 至 6 次</label>
-        <label><input type="radio" name="act_q2" value="4" data-label="一週 1 至 2 次">(4) 一週 1 至 2 次</label>
-        <label><input type="radio" name="act_q2" value="5" data-label="完全沒有發生過">(5) 完全沒有發生過</label>
-      </div>
-    </div>
-
-    <div class="question-card">
-      <div class="question-title">第三題：在「過去 4 週」中，您多常因「氣喘」症狀（喘鳴、咳嗽、呼吸急促、胸悶或胸痛）而讓您半夜醒來或提早醒來？</div>
-      <div class="radio-options">
-        <label><input type="radio" name="act_q3" value="1" data-label="一週 4 次或 4 次以上">(1) 一週 4 次或 4 次以上</label>
-        <label><input type="radio" name="act_q3" value="2" data-label="一週 2 至 3 次">(2) 一週 2 至 3 次</label>
-        <label><input type="radio" name="act_q3" value="3" data-label="一週 1 次">(3) 一週 1 次</label>
-        <label><input type="radio" name="act_q3" value="4" data-label="1 或 2 次">(4) 1 或 2 次</label>
-        <label><input type="radio" name="act_q3" value="5" data-label="完全沒有發生過">(5) 完全沒有發生過</label>
-      </div>
-    </div>
-
-    <div class="question-card">
-      <div class="question-title">第四題：在「過去 4 週」中，您多常使用急救性藥物或噴霧型藥物（例如：Albuterol、Ventolin、Berotec 或 Bricanyl 等氣喘藥物）？</div>
-      <div class="radio-options">
-        <label><input type="radio" name="act_q4" value="1" data-label="一天 3 次或 3 次以上">(1) 一天 3 次或 3 次以上</label>
-        <label><input type="radio" name="act_q4" value="2" data-label="一天 1 或 2 次">(2) 一天 1 或 2 次</label>
-        <label><input type="radio" name="act_q4" value="3" data-label="一週 2 或 3 次">(3) 一週 2 或 3 次</label>
-        <label><input type="radio" name="act_q4" value="4" data-label="一週 1 次或更少">(4) 一週 1 次或更少</label>
-        <label><input type="radio" name="act_q4" value="5" data-label="完全沒有使用過">(5) 完全沒有使用過</label>
-      </div>
-    </div>
-
-    <div class="question-card">
-      <div class="question-title">第五題：在「過去 4 週」中，您對您氣喘控制程度的評價為何？</div>
-      <div class="radio-options">
-        <label><input type="radio" name="act_q5" value="1" data-label="完全沒有受到控制">(1) 完全沒有受到控制</label>
-        <label><input type="radio" name="act_q5" value="2" data-label="控制不好">(2) 控制不好</label>
-        <label><input type="radio" name="act_q5" value="3" data-label="稍微受到控制">(3) 稍微受到控制</label>
-        <label><input type="radio" name="act_q5" value="4" data-label="控制良好">(4) 控制良好</label>
-        <label><input type="radio" name="act_q5" value="5" data-label="完全受到控制">(5) 完全受到控制</label>
-      </div>
-    </div>
-
-    <div class="form-row full">
-      <div class="field">
-        <label>尖峰呼氣流速</label>
-        <input type="number" id="peakFlow" placeholder="請輸入尖峰呼氣流速">
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">
-      <div class="icon">🎙️</div>
-      聲音錄製
-    </div>
-
-    <div class="recorder-area">
-
-      <div class="prompt-box">
-        <div class="prompt-text" id="promptText">
-          「氣喘是一個氣管慢性過敏發炎的疾病，需每天定期用藥，才能治本。」
-        </div>
-      </div>
-
-      <div class="waveform" id="waveform">
-        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-      </div>
-
-      <div class="timer" id="timer">00:00</div>
-
-      <div class="record-btn-wrap">
-        <button class="record-btn" id="recordBtn" onclick="toggleRecord()">
-          <svg id="recordIcon" viewBox="0 0 24 24"><path d="M12 1a4 4 0 0 1 4 4v7a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm6.364 9.636a.75.75 0 0 1 .736.91A7.002 7.002 0 0 1 12.75 18.93V21h2.25a.75.75 0 0 1 0 1.5h-6a.75.75 0 0 1 0-1.5H11.25V18.93A7.002 7.002 0 0 1 4.9 11.546a.75.75 0 1 1 1.473.29A5.502 5.502 0 0 0 17.5 12a5.48 5.48 0 0 0-.046-.637.75.75 0 0 1 .91-.727z"/></svg>
-        </button>
-        <div class="record-label" id="recordLabel">點擊開始錄音</div>
-      </div>
-
-      <div class="playback-area" id="playbackArea">
-        <audio id="audioPlayer" class="audio-player" controls></audio>
-        <div class="playback-actions">
-          <button class="btn btn-danger" onclick="resetRecording()">🔄 重新錄製</button>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">
-      <div class="icon">📤</div>
-      送出資料
-    </div>
-
-    <div class="privacy-box">
-      <strong>隱私權保護申明</strong>
-      當你願意使用這個服務時，代表你已經同意我們的隱私權保護申明。
-    </div>
-
-    <ul class="info-list" style="margin-bottom: 20px;">
-      <li>本資料僅供亞東紀念醫院聲紋 AI 研究使用</li>
-      <li>錄音檔案將以加密方式傳輸至指定雲端</li>
-      <li>個人資料依個資法規定保護，不對外提供</li>
-    </ul>
-
-    <div class="progress-bar" id="progressBar">
-      <div class="progress-fill" id="progressFill"></div>
-    </div>
-
-    <div class="submit-status" id="submitStatus"></div>
-
-    <button class="btn btn-primary" id="submitBtn" onclick="submitData()" style="width:100%; justify-content:center; margin-top: 12px;">
-      ✓ 確認並送出聲音樣本
-    </button>
-  </div>
-
-  <footer>
-    © 亞東紀念醫院・聲紋 AI 計畫&nbsp;｜&nbsp;如有問題請聯繫研究團隊
-  </footer>
-
-</div>
-
-<script>
-const WEBHOOK_URL = 'https://bunn8ntest.zeabur.app/webhook/6e8abf9f-c5fa-4ae5-ad67-a662413eee88';
-
-// 板橋區中心附近固定座標，不使用受試者定位
-const BANQIAO_LATITUDE = 25.0114;
-const BANQIAO_LONGITUDE = 121.4618;
-
-let banqiaoEnvironment = null;
-
-let mediaRecorder = null;
-let audioChunks = [];
-let audioBlob = null;
-let isRecording = false;
-let timerInterval = null;
-let seconds = 0;
-
-
-async function fetchBanqiaoEnvironment() {
+from pathlib import Path
+import re
+
+src = Path('/mnt/data/好呼吸_voice_api_v2_整合版.html')
+out = Path('/mnt/data/好呼吸_voice_api_v2_定位正式版.html')
+text = src.read_text(encoding='utf-8')
+
+# 1) Remove "研究版/研究分析" wording from AI result UI
+text = text.replace('聲音 AI 研究分析', '聲音 AI 分析結果')
+text = text.replace(
+    '本燈號為研究版顯示，係由現有 Model2 六類輸出暫時分組呈現，\n        僅供研究流程使用，不代表正式臨床診斷或醫療建議。',
+    '本結果為聲音 AI 輔助分析資訊，僅供參考，不能取代醫師診斷或醫療建議。'
+)
+text = text.replace('正在進行聲音 AI 研究分析，請稍候...', '正在進行聲音 AI 分析，請稍候...')
+text = text.replace('AI 分析與研究資料上傳完成！感謝您配合本院聲紋 AI 研究計畫。', 'AI 分析與資料上傳完成！感謝您的配合。')
+text = text.replace('Voice API v2 研究結果一併送入既有研究資料流程', 'Voice API v2 分析結果一併送入既有資料流程')
+text = text.replace('研究分類：class_', '模型分類：class_')
+
+# 2) Rename environment UI from Banqiao to current location
+text = text.replace('板橋即時環境資料', '目前位置即時環境資料')
+text = text.replace('正在取得板橋目前環境資料…', '正在取得目前位置與環境資料…')
+text = text.replace('正在更新板橋目前環境資料…', '正在更新目前位置與環境資料…')
+text = text.replace('無法取得板橋環境資料，請確認網路後再送出。', '無法取得目前位置的環境資料，請確認定位權限與網路後再送出。')
+text = text.replace('目前無法取得板橋氣溫、濕度與 PM2.5，請確認網路後再試一次。', '目前無法取得所在地的氣溫、濕度與 PM2.5，請確認定位權限與網路後再試一次。')
+text = text.replace('取得板橋環境資料失敗：', '取得目前位置環境資料失敗：')
+
+# Keep element IDs for compatibility, but change comments and logic.
+text = text.replace('// 板橋區中心附近固定座標，不使用受試者定位\nconst BANQIAO_LATITUDE = 25.0114;\nconst BANQIAO_LONGITUDE = 121.4618;\n\nlet banqiaoEnvironment = null;',
+"""// 依使用者目前定位取得環境資料，不再使用固定板橋座標。
+let currentEnvironment = null;""")
+
+# Replace the entire fixed-coordinate fetch function with current-location version.
+pattern = re.compile(
+    r"async function fetchBanqiaoEnvironment\(\) \{.*?\n\}\n\n\nfunction formatTaipeiTime",
+    re.S
+)
+
+replacement = r"""function getCurrentPositionAsync() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('此瀏覽器不支援定位功能'));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      resolve,
+      reject,
+      {
+        enableHighAccuracy: false,
+        timeout: 12000,
+        maximumAge: 5 * 60 * 1000
+      }
+    );
+  });
+}
+
+async function fetchCurrentEnvironment() {
   const statusEl = document.getElementById('environmentStatus');
-
-  statusEl.textContent = '正在更新板橋目前環境資料…';
-
-  const weatherUrl =
-    `https://api.open-meteo.com/v1/forecast` +
-    `?latitude=${BANQIAO_LATITUDE}` +
-    `&longitude=${BANQIAO_LONGITUDE}` +
-    `&current=temperature_2m,relative_humidity_2m` +
-    `&timezone=Asia%2FTaipei`;
-
-  const airQualityUrl =
-    `https://air-quality-api.open-meteo.com/v1/air-quality` +
-    `?latitude=${BANQIAO_LATITUDE}` +
-    `&longitude=${BANQIAO_LONGITUDE}` +
-    `&current=pm2_5` +
-    `&timezone=Asia%2FTaipei`;
+  statusEl.textContent = '正在取得目前位置與環境資料…';
 
   try {
+    const position = await getCurrentPositionAsync();
+    const latitude = position.coords.latitude;
+    const longitude = position.coords.longitude;
+
+    const weatherUrl =
+      `https://api.open-meteo.com/v1/forecast` +
+      `?latitude=${encodeURIComponent(latitude)}` +
+      `&longitude=${encodeURIComponent(longitude)}` +
+      `&current=temperature_2m,relative_humidity_2m` +
+      `&timezone=Asia%2FTaipei`;
+
+    const airQualityUrl =
+      `https://air-quality-api.open-meteo.com/v1/air-quality` +
+      `?latitude=${encodeURIComponent(latitude)}` +
+      `&longitude=${encodeURIComponent(longitude)}` +
+      `&current=pm2_5` +
+      `&timezone=Asia%2FTaipei`;
+
     const [weatherRes, airQualityRes] = await Promise.all([
       fetch(weatherUrl, { cache: 'no-store' }),
       fetch(airQualityUrl, { cache: 'no-store' })
@@ -937,286 +101,107 @@ async function fetchBanqiaoEnvironment() {
       throw new Error('環境 API 回傳資料不完整');
     }
 
-    banqiaoEnvironment = {
-      location: '新北市板橋區',
-      latitude: BANQIAO_LATITUDE,
-      longitude: BANQIAO_LONGITUDE,
+    currentEnvironment = {
+      location: '目前定位位置',
+      latitude,
+      longitude,
       temperature_c: temperature,
       relative_humidity_percent: humidity,
       pm2_5_ug_m3: pm25,
       weather_observed_at: weatherData.current.time,
       air_quality_observed_at: airQualityData.current.time,
       fetched_at: new Date().toISOString(),
-      source: 'Open-Meteo'
+      source: 'Open-Meteo',
+      location_source: 'browser_geolocation',
+      location_accuracy_m: Number.isFinite(position.coords.accuracy)
+        ? Math.round(position.coords.accuracy)
+        : null
     };
 
     document.getElementById('banqiaoTemperature').textContent = `${temperature} °C`;
     document.getElementById('banqiaoHumidity').textContent = `${humidity} %`;
     document.getElementById('banqiaoPm25').textContent = `${pm25} μg/m³`;
-    statusEl.textContent =
-      `資料時間：${formatTaipeiTime(banqiaoEnvironment.fetched_at)}｜來源：Open-Meteo`;
 
-    return banqiaoEnvironment;
+    const accuracyText = currentEnvironment.location_accuracy_m !== null
+      ? `｜定位精度：約 ${currentEnvironment.location_accuracy_m} m`
+      : '';
+
+    statusEl.textContent =
+      `資料時間：${formatTaipeiTime(currentEnvironment.fetched_at)}｜來源：Open-Meteo${accuracyText}`;
+
+    return currentEnvironment;
   } catch (error) {
-    console.error('取得板橋環境資料失敗：', error);
-    banqiaoEnvironment = null;
+    console.error('取得目前位置環境資料失敗：', error);
+    currentEnvironment = null;
 
     document.getElementById('banqiaoTemperature').textContent = '取得失敗';
     document.getElementById('banqiaoHumidity').textContent = '取得失敗';
     document.getElementById('banqiaoPm25').textContent = '取得失敗';
-    statusEl.textContent = '無法取得板橋環境資料，請確認網路後再送出。';
+
+    if (error && (error.code === 1 || error.name === 'NotAllowedError')) {
+      statusEl.textContent = '定位權限未開啟，請允許定位後再試一次。';
+    } else if (error && error.code === 2) {
+      statusEl.textContent = '目前無法取得位置，請稍後再試。';
+    } else if (error && error.code === 3) {
+      statusEl.textContent = '取得位置逾時，請確認定位服務後再試。';
+    } else {
+      statusEl.textContent = '無法取得目前位置的環境資料，請確認定位權限與網路。';
+    }
 
     throw error;
   }
 }
 
-function formatTaipeiTime(isoString) {
-  return new Intl.DateTimeFormat('zh-TW', {
-    timeZone: 'Asia/Taipei',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  }).format(new Date(isoString));
-}
 
-async function toggleRecord() {
-  if (isRecording) {
-    stopRecording();
-  } else {
-    await startRecording();
-  }
-}
+function formatTaipeiTime"""
 
-async function startRecording() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-  ? 'audio/webm;codecs=opus'
-  : 'audio/mp4';
+text, n = pattern.subn(replacement, text, count=1)
+if n != 1:
+    raise RuntimeError("未找到固定板橋環境函式，無法替換")
 
-mediaRecorder = new MediaRecorder(stream, { mimeType });
+# Replace all remaining state/function references
+text = text.replace('banqiaoEnvironment', 'currentEnvironment')
+text = text.replace('fetchBanqiaoEnvironment()', 'fetchCurrentEnvironment()')
+text = text.replace('// 板橋即時環境資料', '// 目前定位環境資料')
 
-window.currentMimeType = mimeType;
-    audioChunks = [];
+# 3) Clarify API port architecture in code comments and placeholder
+old_api_comment = """// 醫院正式 HTTPS 443 網址確認後，只需修改這一行。
+// 例：https://voice.example.org/api/v2/voice/predict
+const VOICE_API_URL = 'https://YOUR-HOSPITAL-DOMAIN.example/api/v2/voice/predict';"""
+new_api_comment = """// Voice API 連線規則：
+// - 網頁對外一律走 HTTPS 443（網址不需寫 :443）
+// - 醫院反向代理再轉到 Ubuntu 內部 Voice API 127.0.0.1:5100
+// - 舊 APP 的舊 API 仍保留 5000，不提供本網頁使用
+// 醫院正式 HTTPS 網域確認後，只需修改這一行。
+const VOICE_API_URL = 'https://YOUR-HOSPITAL-DOMAIN.example/api/v2/voice/predict';
+const VOICE_API_EXTERNAL_PORT = 443;
+const VOICE_API_INTERNAL_PORT = 5100;"""
+if old_api_comment not in text:
+    raise RuntimeError("找不到 Voice API 設定區塊")
+text = text.replace(old_api_comment, new_api_comment, 1)
 
-    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-    mediaRecorder.onstop = () => {
+# Add port metadata into webhook payload for traceability
+anchor = "  fd.append('ai_request_id', latestAiResult.request_id || '');"
+port_fields = """  fd.append('ai_request_id', latestAiResult.request_id || '');
+  fd.append('ai_external_port', String(VOICE_API_EXTERNAL_PORT));
+  fd.append('ai_internal_service_port', String(VOICE_API_INTERNAL_PORT));"""
+if anchor not in text:
+    raise RuntimeError("找不到 AI request_id 欄位")
+text = text.replace(anchor, port_fields, 1)
 
-  audioBlob = new Blob(audioChunks, {
-    type: window.currentMimeType
-  });
+# Make initial DOM load use current position function
+text = text.replace(
+    "fetchCurrentEnvironment().catch(() => {\n    // 畫面會顯示錯誤，送出時也會再次重試",
+    "fetchCurrentEnvironment().catch(() => {\n    // 畫面會顯示定位/環境錯誤，送出時也會再次重試"
+)
 
-  const url = URL.createObjectURL(audioBlob);
+# Slightly update privacy copy to no longer claim a specific cloud if not guaranteed
+text = text.replace('錄音檔案將以加密方式傳輸至指定雲端', '錄音檔案將透過 HTTPS 加密傳輸至指定系統')
 
-  document.getElementById('audioPlayer').src = url;
-  document.getElementById('playbackArea').classList.add('show');
-};
+out.write_text(text, encoding='utf-8')
 
-    mediaRecorder.start();
-    isRecording = true;
-
-    document.getElementById('recordBtn').classList.add('recording');
-    document.getElementById('recordLabel').textContent = '點擊停止錄音';
-    document.getElementById('waveform').classList.add('active');
-    document.getElementById('timer').classList.add('active');
-    document.getElementById('recordIcon').innerHTML = '<rect x="5" y="5" width="14" height="14" rx="2"/>';
-
-    seconds = 0;
-    updateTimer(true);
-    timerInterval = setInterval(() => updateTimer(true), 1000);
-
-  } catch (err) {
-    alert('無法存取麥克風，請確認瀏覽器權限設定。');
-    console.error(err);
-  }
-}
-
-function stopRecording() {
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    mediaRecorder.stop();
-    mediaRecorder.stream.getTracks().forEach(t => t.stop());
-  }
-  isRecording = false;
-  clearInterval(timerInterval);
-
-  document.getElementById('recordBtn').classList.remove('recording');
-  document.getElementById('recordLabel').textContent = '錄音完成';
-  document.getElementById('waveform').classList.remove('active');
-  document.getElementById('recordIcon').innerHTML = '<path d="M12 1a4 4 0 0 1 4 4v7a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm6.364 9.636a.75.75 0 0 1 .736.91A7.002 7.002 0 0 1 12.75 18.93V21h2.25a.75.75 0 0 1 0 1.5h-6a.75.75 0 0 1 0-1.5H11.25V18.93A7.002 7.002 0 0 1 4.9 11.546a.75.75 0 1 1 1.473.29A5.502 5.502 0 0 0 17.5 12a5.48 5.48 0 0 0-.046-.637.75.75 0 0 1 .91-.727z"/>';
-}
-
-function resetRecording() {
-  audioBlob = null;
-  seconds = 0;
-  document.getElementById('audioPlayer').src = '';
-  document.getElementById('playbackArea').classList.remove('show');
-  document.getElementById('timer').textContent = '00:00';
-  document.getElementById('timer').classList.remove('active');
-  document.getElementById('recordLabel').textContent = '點擊開始錄音';
-  document.getElementById('submitStatus').className = 'submit-status';
-}
-
-function updateTimer(increment = false) {
-  if (increment) seconds++;
-  const displaySeconds = Math.max(seconds - 1, 0);
-  const m = String(Math.floor(displaySeconds / 60)).padStart(2, '0');
-  const s = String(displaySeconds % 60).padStart(2, '0');
-  document.getElementById('timer').textContent = `${m}:${s}`;
-}
-
-function getRadioValue(name) {
-  const checked = document.querySelector(`input[name="${name}"]:checked`);
-  return checked ? checked.value : '';
-}
-
-function getRadioLabel(name) {
-  const checked = document.querySelector(`input[name="${name}"]:checked`);
-  return checked ? checked.dataset.label : '';
-}
-
-function calculateActScore() {
-  const values = ['act_q1', 'act_q2', 'act_q3', 'act_q4', 'act_q5']
-    .map(getRadioValue)
-    .filter(Boolean);
-
-  // 完全未填時回傳空白；有填時加總已填答案
-  if (values.length === 0) return '';
-
-  return values
-    .reduce((sum, value) => sum + Number(value), 0)
-    .toString();
-}
-
-async function submitData() {
-  if (!document.getElementById('name').value.trim()) {
-    return alert('請填寫姓名');
-  }
-  if (!document.getElementById('weather').value) {
-    return alert('請選擇當天天氣');
-  }
-
-  if (!audioBlob) {
-    return alert('請先完成錄音');
-  }
-
-  try {
-    // 每次送出前重新抓取，確保每筆回傳都是當下資料
-    await fetchBanqiaoEnvironment();
-  } catch (error) {
-    return alert('目前無法取得板橋氣溫、濕度與 PM2.5，請確認網路後再試一次。');
-  }
-
-  const btn = document.getElementById('submitBtn');
-  btn.disabled = true;
-  btn.textContent = '上傳中...';
-
-  showStatus('loading', '⏳ 正在上傳聲音樣本，請稍候...');
-  showProgress(true);
-  animateProgress(0, 70, 1200);
-
-  const fd = new FormData();
-  let extension = 'webm';
-
-if (window.currentMimeType.includes('mp4')) {
-  extension = 'm4a';
-}
-
-const filename = `voice_sample.${extension}`;
-
-fd.append('audio_file', audioBlob, filename);
-  fd.append('name', document.getElementById('name').value.trim());
-  fd.append('gender', document.getElementById('gender').value);
-  fd.append('age_group', document.getElementById('ageGroup').value);
-  fd.append('diagnosis', document.getElementById('diagnosis').value);
-  fd.append('weather', document.getElementById('weather').value);
-  fd.append('peak_flow', document.getElementById('peakFlow').value.trim());
-
-  fd.append('act_q1', getRadioValue('act_q1'));
-  fd.append('act_q2', getRadioValue('act_q2'));
-  fd.append('act_q3', getRadioValue('act_q3'));
-  fd.append('act_q4', getRadioValue('act_q4'));
-  fd.append('act_q5', getRadioValue('act_q5'));
-  fd.append('act_q1_text', getRadioLabel('act_q1'));
-  fd.append('act_q2_text', getRadioLabel('act_q2'));
-  fd.append('act_q3_text', getRadioLabel('act_q3'));
-  fd.append('act_q4_text', getRadioLabel('act_q4'));
-  fd.append('act_q5_text', getRadioLabel('act_q5'));
-  fd.append('act_score', calculateActScore());
-  fd.append('privacy_agreement', 'agreed');
-
-  // 板橋即時環境資料
-  fd.append('environment_location', banqiaoEnvironment.location);
-  fd.append('environment_latitude', String(banqiaoEnvironment.latitude));
-  fd.append('environment_longitude', String(banqiaoEnvironment.longitude));
-  fd.append('temperature_c', String(banqiaoEnvironment.temperature_c));
-  fd.append('relative_humidity_percent', String(banqiaoEnvironment.relative_humidity_percent));
-  fd.append('pm2_5_ug_m3', String(banqiaoEnvironment.pm2_5_ug_m3));
-  fd.append('weather_observed_at', banqiaoEnvironment.weather_observed_at);
-  fd.append('air_quality_observed_at', banqiaoEnvironment.air_quality_observed_at);
-  fd.append('environment_fetched_at', banqiaoEnvironment.fetched_at);
-  fd.append('environment_source', banqiaoEnvironment.source);
-  fd.append('environment_json', JSON.stringify(banqiaoEnvironment));
-
-  fd.append('timestamp', new Date().toISOString());
-  fd.append('duration', String(Math.max(seconds - 1, 0)));
-
-  try {
-    const res = await fetch(WEBHOOK_URL, { method: 'POST', body: fd });
-    animateProgress(70, 100, 400);
-
-    setTimeout(() => {
-      if (res.ok) {
-        showStatus('success', '✓ 上傳成功！感謝您配合本院聲紋 AI 研究計畫。');
-        btn.textContent = '✓ 已送出';
-      } else {
-        showStatus('error', `✗ 上傳失敗（HTTP ${res.status}），請聯繫研究人員。`);
-        btn.disabled = false;
-        btn.textContent = '重新送出';
-      }
-      showProgress(false);
-    }, 500);
-
-  } catch (e) {
-    animateProgress(70, 0, 300);
-    setTimeout(() => {
-      showStatus('error', '✗ 網路錯誤，請檢查連線後重試。');
-      btn.disabled = false;
-      btn.textContent = '重新送出';
-      showProgress(false);
-    }, 400);
-  }
-}
-
-function showStatus(type, msg) {
-  const el = document.getElementById('submitStatus');
-  el.className = `submit-status show ${type}`;
-  el.textContent = msg;
-}
-
-function showProgress(show) {
-  document.getElementById('progressBar').classList.toggle('show', show);
-  if (!show) document.getElementById('progressFill').style.width = '0%';
-}
-
-function animateProgress(from, to, duration) {
-  const fill = document.getElementById('progressFill');
-  const start = performance.now();
-  function step(now) {
-    const p = Math.min((now - start) / duration, 1);
-    fill.style.width = (from + (to - from) * p) + '%';
-    if (p < 1) requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
-}
-window.addEventListener('DOMContentLoaded', () => {
-  fetchBanqiaoEnvironment().catch(() => {
-    // 畫面會顯示錯誤，送出時也會再次重試
-  });
-});
-</script>
-</body>
-</html>
+print(f"完成：{out}")
+print("已調整：")
+print("1. 移除研究版字樣，改為一般 AI 分析結果 + 輔助參考聲明")
+print("2. 固定板橋座標改為瀏覽器即時定位")
+print("3. API 外部連線固定 HTTPS 443，內部 Voice API 服務固定 5100")
