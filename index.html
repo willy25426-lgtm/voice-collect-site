@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 src = Path('/mnt/data/好呼吸_voice_api_v2_定位正式版.html')
 if not src.exists():
@@ -28,7 +29,6 @@ for line in [
     text = text.replace(line, "")
 
 # 將 Voice API 註解整理乾淨
-import re
 text = re.sub(
     r"// Voice API 連線規則：.*?const VOICE_API_URL = 'https://YOUR-HOSPITAL-DOMAIN\.example/api/v2/voice/predict';",
     "// Voice API：前端只連醫院正式 HTTPS 網址。\n"
@@ -39,12 +39,10 @@ text = re.sub(
     flags=re.S
 )
 
-# 若沒有匹配到上面區塊，至少確保 URL 存在
 voice_line = "const VOICE_API_URL = 'https://YOUR-HOSPITAL-DOMAIN.example/api/v2/voice/predict';"
 if voice_line not in text:
     raise RuntimeError("找不到 VOICE_API_URL，請確認來源檔案版本")
 
-# 驗證定位與 Open-Meteo 必要內容
 required = [
     "navigator.geolocation.getCurrentPosition",
     "&current=temperature_2m,relative_humidity_2m",
@@ -55,7 +53,6 @@ missing = [item for item in required if item not in text]
 if missing:
     raise RuntimeError(f"必要內容缺失：{missing}")
 
-# 驗證不該出現的內容
 forbidden = [
     "¤t=temperature_2m,relative_humidity_2m",
     "¤t=pm2_5",
